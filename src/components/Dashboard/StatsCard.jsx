@@ -3,8 +3,6 @@
  * Displays statistics in a card format
  */
 
-import { LucideIcon } from 'lucide-react';
-
 const StatsCard = ({ title, value, icon: Icon, trend, color = 'primary' }) => {
   const colorClasses = {
     primary: {

@@ -5,6 +5,9 @@
 [functions]
   node_bundler = "esbuild"
 
+[context.production.environment]
+  SECRETS_SCAN_ENABLED = "false"
+
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/:splat"
