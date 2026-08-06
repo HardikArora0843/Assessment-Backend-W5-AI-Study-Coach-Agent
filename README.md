@@ -374,25 +374,4 @@ Content-Type: application/json
 - [ ] Voice input/output
 - [ ] Mobile app (React Native)
 
-## 📝 License
 
-This project is licensed under the MIT License.
-
-## 🤝 Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-## 📧 Support
-
-For support, please open an issue in the GitHub repository.
-
-## 🙏 Acknowledgments
-
-- OpenAI for the amazing GPT API
-- Netlify for the serverless hosting platform
-- The React and Vite communities
-- Tailwind CSS for the excellent utility-first CSS framework
-
----
-
-Built with ❤️ using React, Vite, and OpenAI
