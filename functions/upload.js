@@ -14,11 +14,10 @@ import mammoth from 'mammoth';
 const UPLOAD_DIR = path.join(process.cwd(), 'uploads');
 const KNOWLEDGE_DIR = path.join(process.cwd(), 'knowledge');
 
-// Ensure directories exist
-await fs.ensureDir(UPLOAD_DIR);
-await fs.ensureDir(KNOWLEDGE_DIR);
-
 export const handler = async (event) => {
+  // Ensure directories exist
+  await fs.ensureDir(UPLOAD_DIR);
+  await fs.ensureDir(KNOWLEDGE_DIR);
   // Handle CORS preflight
   if (event.httpMethod === 'OPTIONS') {
     return {
