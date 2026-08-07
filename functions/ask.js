@@ -1,13 +1,10 @@
 /**
  * Ask Endpoint
- * Handles AI question answering using OpenAI API
+ * Handles AI question answering using OpenAI API with Netlify Blobs storage
  */
 
-import fs from 'fs-extra';
-import path from 'path';
 import OpenAI from 'openai';
-
-const KNOWLEDGE_DIR = path.join(process.cwd(), 'knowledge');
+import { getStore } from '@netlify/blobs';
 
 // Initialize OpenAI client
 const openai = new OpenAI({
@@ -15,6 +12,12 @@ const openai = new OpenAI({
 });
 
 export const handler = async (event) => {
+  // Initialize Netlify Blobs store
+  const store = getStore({
+    siteID: process.env.NETLIFY_SITE_ID,
+    token: process.env.NETLIFY_ACCESS_TOKEN,
+  });
+
   // Handle CORS preflight
   if (event.httpMethod === 'OPTIONS') {
     return {
@@ -66,16 +69,25 @@ export const handler = async (event) => {
       };
     }
 
-    // Load all knowledge files
-    const knowledgeFiles = await fs.readdir(KNOWLEDGE_DIR);
+    // Load all knowledge files from Netlify Blobs
     const knowledgeData = [];
-
-    for (const file of knowledgeFiles) {
-      if (file.endsWith('.json')) {
-        const filePath = path.join(KNOWLEDGE_DIR, file);
-        const data = await fs.readJson(filePath);
-        knowledgeData.push(data);
+    
+    try {
+      // List all blobs in the knowledge directory
+      const blobs = await store.list({ prefix: 'knowledge/' });
+      
+      for (const blob of blobs.blobs) {
+        if (blob.key.endsWith('.json')) {
+          const blobData = await store.get(blob.key);
+          if (blobData) {
+            const data = JSON.parse(blobData);
+            knowledgeData.push(data);
+          }
+        }
       }
+    } catch (error) {
+      console.error('Error loading knowledge from Blobs:', error);
+      // If no knowledge files exist yet, continue with empty array
     }
 
     if (knowledgeData.length === 0) {

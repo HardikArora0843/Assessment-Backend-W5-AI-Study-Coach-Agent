@@ -1,15 +1,17 @@
 /**
  * Delete File Endpoint
- * Handles deletion of uploaded documents and their knowledge data
+ * Handles deletion of uploaded documents and their knowledge data using Netlify Blobs
  */
 
-import fs from 'fs-extra';
-import path from 'path';
-
-const UPLOAD_DIR = path.join(process.cwd(), 'uploads');
-const KNOWLEDGE_DIR = path.join(process.cwd(), 'knowledge');
+import { getStore } from '@netlify/blobs';
 
 export const handler = async (event) => {
+  // Initialize Netlify Blobs store
+  const store = getStore({
+    siteID: process.env.NETLIFY_SITE_ID,
+    token: process.env.NETLIFY_ACCESS_TOKEN,
+  });
+
   // Handle CORS preflight
   if (event.httpMethod === 'OPTIONS') {
     return {
@@ -47,43 +49,53 @@ export const handler = async (event) => {
       };
     }
 
-    // Find the knowledge file
-    const knowledgePath = path.join(KNOWLEDGE_DIR, `${fileId}.json`);
+    // Find the knowledge file in Netlify Blobs
+    const knowledgeKey = `knowledge/${fileId}.json`;
     
-    if (!(await fs.pathExists(knowledgePath))) {
+    try {
+      const blobData = await store.get(knowledgeKey);
+      
+      if (!blobData) {
+        return {
+          statusCode: 404,
+          headers: {
+            'Access-Control-Allow-Origin': '*',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ error: 'File not found' }),
+        };
+      }
+
+      const knowledge = JSON.parse(blobData);
+      
+      // Delete the knowledge file from Blobs
+      await store.delete(knowledgeKey);
+
       return {
-        statusCode: 404,
+        statusCode: 200,
         headers: {
           'Access-Control-Allow-Origin': '*',
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ error: 'File not found' }),
+        body: JSON.stringify({
+          success: true,
+          message: 'File deleted successfully',
+          filename: knowledge.filename,
+        }),
       };
+    } catch (error) {
+      if (error.message.includes('not found') || error.statusCode === 404) {
+        return {
+          statusCode: 404,
+          headers: {
+            'Access-Control-Allow-Origin': '*',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ error: 'File not found' }),
+        };
+      }
+      throw error;
     }
-
-    // Read knowledge to get the file path
-    const knowledge = await fs.readJson(knowledgePath);
-    
-    // Delete the uploaded file
-    if (await fs.pathExists(knowledge.path)) {
-      await fs.remove(knowledge.path);
-    }
-
-    // Delete the knowledge file
-    await fs.remove(knowledgePath);
-
-    return {
-      statusCode: 200,
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        success: true,
-        message: 'File deleted successfully',
-        filename: knowledge.filename,
-      }),
-    };
 
   } catch (error) {
     console.error('Delete error:', error);

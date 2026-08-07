@@ -1,23 +1,22 @@
 /**
  * Upload Endpoint
- * Handles file uploads, text extraction, and storage
+ * Handles file uploads, text extraction, and storage using Netlify Blobs
  */
 
-import fs from 'fs-extra';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import formidable from 'formidable';
 import pdfParse from 'pdf-parse';
 import mammoth from 'mammoth';
-
-// Configure storage paths
-const UPLOAD_DIR = path.join(process.cwd(), 'uploads');
-const KNOWLEDGE_DIR = path.join(process.cwd(), 'knowledge');
+import { getStore } from '@netlify/blobs';
 
 export const handler = async (event) => {
-  // Ensure directories exist
-  await fs.ensureDir(UPLOAD_DIR);
-  await fs.ensureDir(KNOWLEDGE_DIR);
+  // Initialize Netlify Blobs store
+  const store = getStore({
+    siteID: process.env.NETLIFY_SITE_ID,
+    token: process.env.NETLIFY_ACCESS_TOKEN,
+  });
+
   // Handle CORS preflight
   if (event.httpMethod === 'OPTIONS') {
     return {
@@ -67,7 +66,6 @@ export const handler = async (event) => {
     const supportedTypes = ['.pdf', '.docx', '.txt'];
     
     if (!supportedTypes.includes(fileExt)) {
-      await fs.remove(file.filepath);
       return {
         statusCode: 400,
         headers: {
@@ -80,30 +78,29 @@ export const handler = async (event) => {
       };
     }
 
-    // Generate unique ID and new filename
+    // Generate unique ID
     const fileId = uuidv4();
-    const newFilename = `${fileId}${fileExt}`;
-    const uploadPath = path.join(UPLOAD_DIR, newFilename);
     
-    // Move file to uploads directory
-    await fs.move(file.filepath, uploadPath);
-
-    // Extract text based on file type
+    // Extract text based on file type using the file buffer from formidable
     let extractedText = '';
     let pageCount = 0;
 
     if (fileExt === '.pdf') {
-      const dataBuffer = await fs.readFile(uploadPath);
+      const fs = await import('fs-extra');
+      const dataBuffer = await fs.readFile(file.filepath);
       const pdfData = await pdfParse(dataBuffer);
       extractedText = pdfData.text;
       pageCount = pdfData.numpages;
     } else if (fileExt === '.docx') {
-      const dataBuffer = await fs.readFile(uploadPath);
+      const fs = await import('fs-extra');
+      const dataBuffer = await fs.readFile(file.filepath);
       const result = await mammoth.extractRawText({ buffer: dataBuffer });
       extractedText = result.value;
       pageCount = 1; // DOCX doesn't have page count in the same way
     } else if (fileExt === '.txt') {
-      extractedText = await fs.readFile(uploadPath, 'utf-8');
+      // For txt files, read the content from the file path
+      const fs = await import('fs-extra');
+      extractedText = await fs.readFile(file.filepath, 'utf-8');
       pageCount = 1;
     }
 
@@ -111,7 +108,6 @@ export const handler = async (event) => {
     extractedText = extractedText.trim();
     
     if (!extractedText || extractedText.length < 10) {
-      await fs.remove(uploadPath);
       return {
         statusCode: 400,
         headers: {
@@ -124,7 +120,7 @@ export const handler = async (event) => {
       };
     }
 
-    // Store knowledge metadata
+    // Store knowledge metadata in Netlify Blobs
     const knowledge = {
       id: fileId,
       filename: file.originalFilename,
@@ -133,12 +129,12 @@ export const handler = async (event) => {
       extractedText: extractedText,
       pageCount: pageCount,
       uploadDate: new Date().toISOString(),
-      path: uploadPath,
     };
 
-    // Save knowledge to JSON file
-    const knowledgePath = path.join(KNOWLEDGE_DIR, `${fileId}.json`);
-    await fs.writeJson(knowledgePath, knowledge, { spaces: 2 });
+    // Save knowledge metadata as JSON in Blobs
+    await store.set(`knowledge/${fileId}.json`, JSON.stringify(knowledge, null, 2), {
+      contentType: 'application/json',
+    });
 
     return {
       statusCode: 200,

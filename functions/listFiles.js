@@ -1,14 +1,17 @@
 /**
  * List Files Endpoint
- * Returns list of all uploaded documents
+ * Returns list of all uploaded documents using Netlify Blobs
  */
 
-import fs from 'fs-extra';
-import path from 'path';
-
-const KNOWLEDGE_DIR = path.join(process.cwd(), 'knowledge');
+import { getStore } from '@netlify/blobs';
 
 export const handler = async (event) => {
+  // Initialize Netlify Blobs store
+  const store = getStore({
+    siteID: process.env.NETLIFY_SITE_ID,
+    token: process.env.NETLIFY_ACCESS_TOKEN,
+  });
+
   // Handle CORS preflight
   if (event.httpMethod === 'OPTIONS') {
     return {
@@ -33,29 +36,34 @@ export const handler = async (event) => {
   }
 
   try {
-    // Ensure knowledge directory exists
-    await fs.ensureDir(KNOWLEDGE_DIR);
-
-    // Read all knowledge files
-    const knowledgeFiles = await fs.readdir(KNOWLEDGE_DIR);
+    // List all knowledge files from Netlify Blobs
     const documents = [];
-
-    for (const file of knowledgeFiles) {
-      if (file.endsWith('.json')) {
-        const filePath = path.join(KNOWLEDGE_DIR, file);
-        const data = await fs.readJson(filePath);
-        
-        // Return only metadata, not the full text
-        documents.push({
-          id: data.id,
-          filename: data.filename,
-          type: data.type,
-          size: data.size,
-          pageCount: data.pageCount,
-          uploadDate: data.uploadDate,
-          textLength: data.extractedText.length,
-        });
+    
+    try {
+      const blobs = await store.list({ prefix: 'knowledge/' });
+      
+      for (const blob of blobs.blobs) {
+        if (blob.key.endsWith('.json')) {
+          const blobData = await store.get(blob.key);
+          if (blobData) {
+            const data = JSON.parse(blobData);
+            
+            // Return only metadata, not the full text
+            documents.push({
+              id: data.id,
+              filename: data.filename,
+              type: data.type,
+              size: data.size,
+              pageCount: data.pageCount,
+              uploadDate: data.uploadDate,
+              textLength: data.extractedText.length,
+            });
+          }
+        }
       }
+    } catch (error) {
+      console.error('Error listing files from Blobs:', error);
+      // If no files exist yet, return empty array
     }
 
     // Sort by upload date (newest first)

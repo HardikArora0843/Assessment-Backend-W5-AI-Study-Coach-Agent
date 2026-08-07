@@ -26,7 +26,8 @@
     "formidable": "^3.5.2",
     "uuid": "^11.0.3",
     "dotenv": "^16.4.7",
-    "fs-extra": "^11.2.0"
+    "fs-extra": "^11.2.0",
+    "@netlify/blobs": "^8.1.0"
   },
   "devDependencies": {
     "@types/react": "^19.0.1",
