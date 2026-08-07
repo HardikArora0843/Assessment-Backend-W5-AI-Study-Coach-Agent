@@ -147,14 +147,14 @@ Please answer the question based on the study material above.`;
       apiKey: process.env.OPENAI_API_KEY,
     });
     
-    const completion = await openai.chat.completions.create({
+    const completion = await createChatCompletionWithRetry(openai, {
       model: model,
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt },
       ],
-      temperature: 0.7,
-      max_tokens: 2000,
+      temperature: 0.4,
+      max_tokens: 1200,
     });
 
     const answer = completion.choices[0]?.message?.content || 'No response generated.';
@@ -191,14 +191,17 @@ Please answer the question based on the study material above.`;
     }
 
     if (error.status === 429) {
+      const retryAfter = getRetryAfterSeconds(error);
+
       return {
         statusCode: 429,
         headers: {
           'Access-Control-Allow-Origin': '*',
           'Content-Type': 'application/json',
+          ...(retryAfter ? { 'Retry-After': retryAfter.toString() } : {}),
         },
         body: JSON.stringify({ 
-          error: 'Rate limit exceeded. Please try again later.' 
+          error: 'The AI provider is rate-limiting this project or the API quota is exhausted. Please wait a minute and try again, or check your OpenAI billing and rate limits.' 
         }),
       };
     }
@@ -218,3 +221,34 @@ Please answer the question based on the study material above.`;
     await closeMongoDB();
   }
 };
+
+async function createChatCompletionWithRetry(openai, payload) {
+  const maxAttempts = 3;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    try {
+      return await openai.chat.completions.create(payload);
+    } catch (error) {
+      const retryAfter = getRetryAfterSeconds(error);
+      const shouldRetry = error.status === 429 && attempt < maxAttempts && retryAfter !== null;
+
+      if (!shouldRetry) {
+        throw error;
+      }
+
+      await delay(Math.min(retryAfter, 5) * 1000);
+    }
+  }
+}
+
+function getRetryAfterSeconds(error) {
+  const retryAfter = error.headers?.['retry-after'] || error.headers?.get?.('retry-after');
+  const seconds = Number.parseInt(retryAfter, 10);
+  return Number.isFinite(seconds) && seconds > 0 ? seconds : null;
+}
+
+function delay(milliseconds) {
+  return new Promise(resolve => {
+    setTimeout(resolve, milliseconds);
+  });
+}
