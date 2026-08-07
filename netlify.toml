@@ -9,6 +9,10 @@
 [context.production.environment]
   SECRETS_SCAN_ENABLED = "false"
   NETLIFY_BLOBS_STORE_ID = "study-coach-uploads"
+<<<<<<< HEAD
+=======
+  
+>>>>>>> 4e39f79629e94730e7f8d9f00c00de8adfc7ac5d
 
 [[redirects]]
   from = "/api/*"
