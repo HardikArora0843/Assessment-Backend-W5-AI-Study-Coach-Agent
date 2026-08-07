@@ -4,7 +4,7 @@
  */
 
 import { ObjectId } from 'mongodb';
-import { deleteDocument, getDocumentForDeletion } from './models/Document.js';
+import { deleteDocument } from './models/Document.js';
 import { closeMongoDB } from './utils/mongodb.js';
 
 export const handler = async (event) => {
