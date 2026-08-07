@@ -5,7 +5,7 @@
 
 import axios from 'axios';
 
-const API_BASE_URL = '/.netlify/functions';
+const API_BASE_URL = '/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -48,13 +48,13 @@ export const uploadFile = async (file) => {
   const formData = new FormData();
   formData.append('file', file);
 
-  const response = await axios.post(`${API_BASE_URL}/upload`, formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    },
-  });
-
-  return response.data;
+  try {
+    const response = await axios.post(`${API_BASE_URL}/upload`, formData);
+    return response.data;
+  } catch (error) {
+    const message = error.response?.data?.error || error.message || 'An error occurred';
+    throw new Error(message);
+  }
 };
 
 /**

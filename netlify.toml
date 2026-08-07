@@ -1,4 +1,4 @@
-[build]
+﻿[build]
   command = "npm run build"
   publish = "dist"
 
@@ -8,10 +8,6 @@
 
 [context.production.environment]
   SECRETS_SCAN_ENABLED = "false"
-<<<<<<< HEAD
-=======
-  
->>>>>>> 4e39f79629e94730e7f8d9f00c00de8adfc7ac5d
 
 [[redirects]]
   from = "/api/*"

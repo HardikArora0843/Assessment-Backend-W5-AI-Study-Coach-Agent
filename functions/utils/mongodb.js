@@ -44,15 +44,12 @@ export async function getMongoDB() {
 
 /**
  * Close MongoDB connection
- * Called when function execution completes
+ * Kept for compatibility with existing functions. Netlify can reuse warm
+ * function instances, so leaving the client open avoids reconnecting on every
+ * request.
  */
 export async function closeMongoDB() {
-  if (client) {
-    await client.close();
-    client = null;
-    db = null;
-    console.log('MongoDB connection closed');
-  }
+  return;
 }
 
 /**

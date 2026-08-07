@@ -4,7 +4,7 @@
  */
 
 import { useState, useCallback } from 'react';
-import { Upload, FileText, X, Check, AlertCircle } from 'lucide-react';
+import { Upload, X, Check } from 'lucide-react';
 import { uploadFile } from '../../services/api';
 import { isValidFileType, isValidFileSize } from '../../utils/validation';
 import { formatFileSize } from '../../utils/formatters';
@@ -17,30 +17,7 @@ const FileUpload = ({ onUploadSuccess }) => {
 
   const MAX_FILE_SIZE = 10485760; // 10MB
 
-  const handleDragOver = useCallback((e) => {
-    e.preventDefault();
-    setIsDragging(true);
-  }, []);
-
-  const handleDragLeave = useCallback((e) => {
-    e.preventDefault();
-    setIsDragging(false);
-  }, []);
-
-  const handleDrop = useCallback((e) => {
-    e.preventDefault();
-    setIsDragging(false);
-    
-    const files = Array.from(e.dataTransfer.files);
-    processFiles(files);
-  }, []);
-
-  const handleFileSelect = useCallback((e) => {
-    const files = Array.from(e.target.files);
-    processFiles(files);
-  }, []);
-
-  const processFiles = async (files) => {
+  const processFiles = useCallback(async (files) => {
     const validFiles = files.filter(file => {
       if (!isValidFileType(file)) {
         toast.error(`Invalid file type: ${file.name}. Please upload PDF, DOCX, or TXT files.`);
@@ -73,7 +50,30 @@ const FileUpload = ({ onUploadSuccess }) => {
     }
 
     setIsUploading(false);
-  };
+  }, [onUploadSuccess]);
+
+  const handleDragOver = useCallback((e) => {
+    e.preventDefault();
+    setIsDragging(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e) => {
+    e.preventDefault();
+    setIsDragging(false);
+  }, []);
+
+  const handleDrop = useCallback((e) => {
+    e.preventDefault();
+    setIsDragging(false);
+    
+    const files = Array.from(e.dataTransfer.files);
+    processFiles(files);
+  }, [processFiles]);
+
+  const handleFileSelect = useCallback((e) => {
+    const files = Array.from(e.target.files);
+    processFiles(files);
+  }, [processFiles]);
 
   const removeFile = (index) => {
     setUploadedFiles(prev => prev.filter((_, i) => i !== index));

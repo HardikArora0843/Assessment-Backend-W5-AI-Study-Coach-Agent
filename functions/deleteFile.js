@@ -4,7 +4,7 @@
  */
 
 import { ObjectId } from 'mongodb';
-import { deleteDocument } from './models/Document.js';
+import { deleteDocument, getDocumentForDeletion } from './models/Document.js';
 import { closeMongoDB } from './utils/mongodb.js';
 
 export const handler = async (event) => {
@@ -32,6 +32,17 @@ export const handler = async (event) => {
   }
 
   try {
+    if (!event.body) {
+      return {
+        statusCode: 400,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ error: 'Request body is required' }),
+      };
+    }
+
     const { fileId } = JSON.parse(event.body);
 
     if (!fileId) {
@@ -63,7 +74,7 @@ export const handler = async (event) => {
     let objectId;
     try {
       objectId = new ObjectId(fileId);
-    } catch (error) {
+    } catch {
       return {
         statusCode: 400,
         headers: {

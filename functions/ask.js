@@ -7,11 +7,6 @@ import OpenAI from 'openai';
 import { getAllDocumentsWithContent } from './models/Document.js';
 import { closeMongoDB } from './utils/mongodb.js';
 
-// Initialize OpenAI client
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
 export const handler = async (event) => {
   // Handle CORS preflight
   if (event.httpMethod === 'OPTIONS') {
@@ -148,6 +143,9 @@ Please answer the question based on the study material above.`;
 
     // Call OpenAI API
     const model = process.env.MODEL || 'gpt-4.1-mini';
+    const openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
     
     const completion = await openai.chat.completions.create({
       model: model,

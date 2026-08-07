@@ -3,7 +3,7 @@
  * Returns server status, version, and uptime information
  */
 
-export const handler = async (event) => {
+export const handler = async () => {
   try {
     const uptime = process.uptime();
     const memoryUsage = process.memoryUsage();

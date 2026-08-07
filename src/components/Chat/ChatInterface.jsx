@@ -61,7 +61,7 @@ const ChatInterface = ({ messages, onSendMessage, onClearChat, isLoading }) => {
                 Start learning from your study material
               </h3>
               <p className="text-gray-600 dark:text-gray-400 max-w-md">
-                Upload your documents and ask questions about them. I'll help you understand the content better.
+                Upload your documents and ask questions about them. I&apos;ll help you understand the content better.
               </p>
             </div>
             <div className="flex flex-wrap justify-center gap-2">
@@ -118,7 +118,7 @@ const ChatInterface = ({ messages, onSendMessage, onClearChat, isLoading }) => {
                       <ReactMarkdown
                         remarkPlugins={[remarkGfm]}
                         components={{
-                          code({ node, inline, className, children, ...props }) {
+                          code({ inline, className, children, ...props }) {
                             const match = /language-(\w+)/.exec(className || '');
                             return !inline && match ? (
                               <SyntaxHighlighter

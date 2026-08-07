@@ -46,11 +46,19 @@ export const useDocuments = () => {
   }, [fetchDocuments]);
 
   const addDocument = useCallback((document) => {
-    setDocuments(prev => [document, ...prev]);
+    setDocuments(prev => {
+      const updated = [document, ...prev.filter(doc => doc.id !== document.id)];
+      setDocumentsCache(updated);
+      return updated;
+    });
   }, []);
 
   const removeDocument = useCallback((fileId) => {
-    setDocuments(prev => prev.filter(doc => doc.id !== fileId));
+    setDocuments(prev => {
+      const updated = prev.filter(doc => doc.id !== fileId);
+      setDocumentsCache(updated);
+      return updated;
+    });
   }, []);
 
   const refreshDocuments = useCallback(() => {

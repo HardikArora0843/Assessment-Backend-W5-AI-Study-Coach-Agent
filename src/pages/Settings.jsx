@@ -4,7 +4,7 @@
  */
 
 import { useState } from 'react';
-import { Trash2, Download, Moon, Sun, Clock, FileText } from 'lucide-react';
+import { Trash2, Moon, Sun, Clock, FileText } from 'lucide-react';
 import { useTheme } from '../hooks/useTheme';
 import { clearAppStorage, getStats } from '../utils/storage';
 import toast from 'react-hot-toast';
@@ -23,7 +23,7 @@ const Settings = () => {
         setTimeout(() => {
           window.location.reload();
         }, 1000);
-      } catch (error) {
+      } catch {
         toast.error('Failed to clear data');
       } finally {
         setIsClearing(false);

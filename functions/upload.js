@@ -4,7 +4,7 @@
  */
 
 import path from 'path';
-import { v4 as uuidv4 } from 'uuid';
+import { Readable } from 'stream';
 import formidable from 'formidable';
 import pdfParse from 'pdf-parse';
 import mammoth from 'mammoth';
@@ -57,7 +57,7 @@ export const handler = async (event) => {
     });
 
     const formData = await parseForm(event, form);
-    const file = formData.files.file;
+    const file = getFirstFile(formData.files.file);
 
     if (!file) {
       return {
@@ -87,9 +87,6 @@ export const handler = async (event) => {
       };
     }
 
-    // Generate unique ID
-    const fileId = uuidv4();
-    
     // Extract text based on file type using the file buffer from formidable
     let extractedText = '';
     let pageCount = 0;
@@ -131,7 +128,6 @@ export const handler = async (event) => {
 
     // Store document metadata in MongoDB
     const documentData = {
-      id: fileId,
       filename: file.originalFilename,
       type: fileExt,
       size: file.size,
@@ -150,12 +146,13 @@ export const handler = async (event) => {
         },
         body: JSON.stringify({
           success: true,
-          id: savedDocument.id,
+          id: savedDocument._id.toString(),
           filename: file.originalFilename,
           type: fileExt,
           size: file.size,
           pages: pageCount,
-          uploadDate: savedDocument.uploadDate,
+          pageCount,
+          uploadDate: savedDocument.createdAt.toISOString(),
           textLength: extractedText.length,
         }),
       };
@@ -195,28 +192,37 @@ export const handler = async (event) => {
 // Helper function to parse form data from Netlify event
 async function parseForm(event, form) {
   return new Promise((resolve, reject) => {
-    // Check if body is a buffer or string
-    let buffer;
-    if (Buffer.isBuffer(event.body)) {
-      buffer = event.body;
-    } else if (typeof event.body === 'string') {
-      buffer = Buffer.from(event.body, 'base64');
-    } else {
+    if (!event.body) {
       reject(new Error('Invalid body format'));
       return;
     }
 
     const contentType = event.headers['content-type'] || event.headers['Content-Type'];
-    
-    form.parse(
-      { 
-        headers: { 'content-type': contentType },
-        buffer: buffer
-      },
-      (err, fields, files) => {
-        if (err) reject(err);
-        else resolve({ fields, files });
-      }
-    );
+
+    if (!contentType) {
+      reject(new Error('Missing Content-Type header'));
+      return;
+    }
+
+    const buffer = Buffer.isBuffer(event.body)
+      ? event.body
+      : Buffer.from(event.body, event.isBase64Encoded ? 'base64' : 'utf-8');
+
+    const request = Readable.from([buffer]);
+    request.headers = {
+      'content-type': contentType,
+      'content-length': buffer.length,
+    };
+    request.method = event.httpMethod;
+    request.url = event.path || '/upload';
+
+    form.parse(request, (err, fields, files) => {
+      if (err) reject(err);
+      else resolve({ fields, files });
+    });
   });
+}
+
+function getFirstFile(fileOrFiles) {
+  return Array.isArray(fileOrFiles) ? fileOrFiles[0] : fileOrFiles;
 }
