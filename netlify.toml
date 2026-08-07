@@ -1,31 +1,32 @@
 [build]
-  command = "npm run build"
-  publish = "dist"
+  command = \
+npm
+run
+build\
+  publish = \dist\
 
 [functions]
-  directory = "functions"
-  node_bundler = "esbuild"
+  directory = \functions\
+  node_bundler = \esbuild\
 
 [context.production.environment]
-  SECRETS_SCAN_ENABLED = "false"
-<<<<<<< HEAD
-=======
-  
->>>>>>> 4e39f79629e94730e7f8d9f00c00de8adfc7ac5d
+  SECRETS_SCAN_ENABLED = \false\
 
 [[redirects]]
-  from = "/api/*"
-  to = "/.netlify/functions/:splat"
+  from = \/api/*\
+  to = \/.netlify/functions/:splat\
   status = 200
 
 [[redirects]]
-  from = "/*"
-  to = "/index.html"
+  from = \/*\
+  to = \/index.html\
   status = 200
 
 [dev]
-  command = "npm run dev"
+  command = \npm
+run
+dev\
   port = 3000
   targetPort = 3000
   autoLaunch = true
-  functions = "functions"
+  functions = \functions\
