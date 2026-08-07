@@ -11,12 +11,6 @@ import mammoth from 'mammoth';
 import { getStore } from '@netlify/blobs';
 
 export const handler = async (event) => {
-  // Initialize Netlify Blobs store
-  const store = getStore({
-    siteID: process.env.NETLIFY_SITE_ID,
-    token: process.env.NETLIFY_ACCESS_TOKEN,
-  });
-
   // Handle CORS preflight
   if (event.httpMethod === 'OPTIONS') {
     return {
@@ -41,6 +35,28 @@ export const handler = async (event) => {
   }
 
   try {
+    // Initialize Netlify Blobs store
+    let store;
+    try {
+      store = getStore({
+        siteID: process.env.NETLIFY_SITE_ID,
+        token: process.env.NETLIFY_ACCESS_TOKEN,
+      });
+    } catch (error) {
+      console.error('Failed to initialize Netlify Blobs:', error);
+      return {
+        statusCode: 500,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          error: 'Netlify Blobs is not properly configured. Please enable Blobs in your Netlify dashboard.',
+          details: 'Go to Site settings → Functions → Blobs and enable Blobs with store ID: study-coach-uploads'
+        }),
+      };
+    }
+
     // Parse the multipart form data
     const form = formidable({
       maxFileSize: parseInt(process.env.MAX_UPLOAD_SIZE) || 10485760, // 10MB default
@@ -132,9 +148,24 @@ export const handler = async (event) => {
     };
 
     // Save knowledge metadata as JSON in Blobs
-    await store.set(`knowledge/${fileId}.json`, JSON.stringify(knowledge, null, 2), {
-      contentType: 'application/json',
-    });
+    try {
+      await store.set(`knowledge/${fileId}.json`, JSON.stringify(knowledge, null, 2), {
+        contentType: 'application/json',
+      });
+    } catch (error) {
+      console.error('Failed to store in Netlify Blobs:', error);
+      return {
+        statusCode: 500,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          error: 'Failed to store file in Netlify Blobs. Please check your Blobs configuration.',
+          details: error.message
+        }),
+      };
+    }
 
     return {
       statusCode: 200,

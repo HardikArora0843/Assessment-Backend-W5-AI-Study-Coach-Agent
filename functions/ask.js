@@ -12,12 +12,6 @@ const openai = new OpenAI({
 });
 
 export const handler = async (event) => {
-  // Initialize Netlify Blobs store
-  const store = getStore({
-    siteID: process.env.NETLIFY_SITE_ID,
-    token: process.env.NETLIFY_ACCESS_TOKEN,
-  });
-
   // Handle CORS preflight
   if (event.httpMethod === 'OPTIONS') {
     return {
@@ -66,6 +60,28 @@ export const handler = async (event) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ error: 'Question is required' }),
+      };
+    }
+
+    // Initialize Netlify Blobs store
+    let store;
+    try {
+      store = getStore({
+        siteID: process.env.NETLIFY_SITE_ID,
+        token: process.env.NETLIFY_ACCESS_TOKEN,
+      });
+    } catch (error) {
+      console.error('Failed to initialize Netlify Blobs:', error);
+      return {
+        statusCode: 500,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          error: 'Netlify Blobs is not properly configured. Please enable Blobs in your Netlify dashboard.',
+          details: 'Go to Site settings → Functions → Blobs and enable Blobs with store ID: study-coach-uploads'
+        }),
       };
     }
 
