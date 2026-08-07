@@ -1,10 +1,11 @@
 /**
  * Ask Endpoint
- * Handles AI question answering using OpenAI API with Netlify Blobs storage
+ * Handles AI question answering using OpenAI API with MongoDB storage
  */
 
 import OpenAI from 'openai';
-import { getStore } from '@netlify/blobs';
+import { getAllDocumentsWithContent } from './models/Document.js';
+import { closeMongoDB } from './utils/mongodb.js';
 
 // Initialize OpenAI client
 const openai = new OpenAI({
@@ -50,6 +51,20 @@ export const handler = async (event) => {
       };
     }
 
+    // Validate MongoDB connection
+    if (!process.env.MONGODB_URI) {
+      return {
+        statusCode: 500,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          error: 'MongoDB URI is not configured. Please set MONGODB_URI environment variable.' 
+        }),
+      };
+    }
+
     const { question } = JSON.parse(event.body);
 
     if (!question || question.trim().length === 0) {
@@ -63,48 +78,8 @@ export const handler = async (event) => {
       };
     }
 
-    // Initialize Netlify Blobs store
-    let store;
-    try {
-      store = getStore({
-        siteID: process.env.NETLIFY_SITE_ID,
-        token: process.env.NETLIFY_ACCESS_TOKEN,
-      });
-    } catch (error) {
-      console.error('Failed to initialize Netlify Blobs:', error);
-      return {
-        statusCode: 500,
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ 
-          error: 'Netlify Blobs is not properly configured. Please enable Blobs in your Netlify dashboard.',
-          details: 'Go to Site settings → Functions → Blobs and enable Blobs with store ID: study-coach-uploads'
-        }),
-      };
-    }
-
-    // Load all knowledge files from Netlify Blobs
-    const knowledgeData = [];
-    
-    try {
-      // List all blobs in the knowledge directory
-      const blobs = await store.list({ prefix: 'knowledge/' });
-      
-      for (const blob of blobs.blobs) {
-        if (blob.key.endsWith('.json')) {
-          const blobData = await store.get(blob.key);
-          if (blobData) {
-            const data = JSON.parse(blobData);
-            knowledgeData.push(data);
-          }
-        }
-      }
-    } catch (error) {
-      console.error('Error loading knowledge from Blobs:', error);
-      // If no knowledge files exist yet, continue with empty array
-    }
+    // Load all knowledge documents from MongoDB
+    const knowledgeData = await getAllDocumentsWithContent();
 
     if (knowledgeData.length === 0) {
       return {
@@ -134,7 +109,7 @@ export const handler = async (event) => {
       sources.push({
         filename: knowledge.filename,
         type: knowledge.type,
-        uploadDate: knowledge.uploadDate,
+        uploadDate: knowledge.createdAt.toISOString(),
       });
     }
 
@@ -240,5 +215,8 @@ Please answer the question based on the study material above.`;
         error: 'Failed to generate answer: ' + error.message 
       }),
     };
+  } finally {
+    // Close MongoDB connection
+    await closeMongoDB();
   }
 };

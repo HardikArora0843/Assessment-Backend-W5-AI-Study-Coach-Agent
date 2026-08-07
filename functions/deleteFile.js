@@ -1,17 +1,13 @@
 /**
  * Delete File Endpoint
- * Handles deletion of uploaded documents and their knowledge data using Netlify Blobs
+ * Handles deletion of uploaded documents using MongoDB
  */
 
-import { getStore } from '@netlify/blobs';
+import { ObjectId } from 'mongodb';
+import { deleteDocument, getDocumentForDeletion } from './models/Document.js';
+import { closeMongoDB } from './utils/mongodb.js';
 
 export const handler = async (event) => {
-  // Initialize Netlify Blobs store
-  const store = getStore({
-    siteID: process.env.NETLIFY_SITE_ID,
-    token: process.env.NETLIFY_ACCESS_TOKEN,
-  });
-
   // Handle CORS preflight
   if (event.httpMethod === 'OPTIONS') {
     return {
@@ -49,53 +45,75 @@ export const handler = async (event) => {
       };
     }
 
-    // Find the knowledge file in Netlify Blobs
-    const knowledgeKey = `knowledge/${fileId}.json`;
-    
-    try {
-      const blobData = await store.get(knowledgeKey);
-      
-      if (!blobData) {
-        return {
-          statusCode: 404,
-          headers: {
-            'Access-Control-Allow-Origin': '*',
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ error: 'File not found' }),
-        };
-      }
-
-      const knowledge = JSON.parse(blobData);
-      
-      // Delete the knowledge file from Blobs
-      await store.delete(knowledgeKey);
-
+    // Validate MongoDB connection
+    if (!process.env.MONGODB_URI) {
       return {
-        statusCode: 200,
+        statusCode: 500,
         headers: {
           'Access-Control-Allow-Origin': '*',
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          success: true,
-          message: 'File deleted successfully',
-          filename: knowledge.filename,
+        body: JSON.stringify({ 
+          error: 'MongoDB URI is not configured. Please set MONGODB_URI environment variable.' 
         }),
       };
-    } catch (error) {
-      if (error.message.includes('not found') || error.statusCode === 404) {
-        return {
-          statusCode: 404,
-          headers: {
-            'Access-Control-Allow-Origin': '*',
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ error: 'File not found' }),
-        };
-      }
-      throw error;
     }
+
+    // Convert string ID to ObjectId
+    let objectId;
+    try {
+      objectId = new ObjectId(fileId);
+    } catch (error) {
+      return {
+        statusCode: 400,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ error: 'Invalid file ID format' }),
+      };
+    }
+
+    // Get document info before deletion
+    const document = await getDocumentForDeletion(objectId);
+    
+    if (!document) {
+      return {
+        statusCode: 404,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ error: 'File not found' }),
+      };
+    }
+
+    // Delete the document from MongoDB
+    const deleted = await deleteDocument(objectId);
+
+    if (!deleted) {
+      return {
+        statusCode: 404,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ error: 'File not found' }),
+      };
+    }
+
+    return {
+      statusCode: 200,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        success: true,
+        message: 'File deleted successfully',
+        filename: document.filename,
+      }),
+    };
 
   } catch (error) {
     console.error('Delete error:', error);
@@ -109,5 +127,8 @@ export const handler = async (event) => {
         error: 'Failed to delete file: ' + error.message 
       }),
     };
+  } finally {
+    // Close MongoDB connection
+    await closeMongoDB();
   }
 };

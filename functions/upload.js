@@ -1,6 +1,6 @@
 /**
  * Upload Endpoint
- * Handles file uploads, text extraction, and storage using Netlify Blobs
+ * Handles file uploads, text extraction, and storage using MongoDB
  */
 
 import path from 'path';
@@ -8,7 +8,8 @@ import { v4 as uuidv4 } from 'uuid';
 import formidable from 'formidable';
 import pdfParse from 'pdf-parse';
 import mammoth from 'mammoth';
-import { getStore } from '@netlify/blobs';
+import { createDocument } from './models/Document.js';
+import { closeMongoDB } from './utils/mongodb.js';
 
 export const handler = async (event) => {
   // Handle CORS preflight
@@ -35,15 +36,8 @@ export const handler = async (event) => {
   }
 
   try {
-    // Initialize Netlify Blobs store
-    let store;
-    try {
-      store = getStore({
-        siteID: process.env.NETLIFY_SITE_ID,
-        token: process.env.NETLIFY_ACCESS_TOKEN,
-      });
-    } catch (error) {
-      console.error('Failed to initialize Netlify Blobs:', error);
+    // Validate MongoDB connection
+    if (!process.env.MONGODB_URI) {
       return {
         statusCode: 500,
         headers: {
@@ -51,8 +45,7 @@ export const handler = async (event) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ 
-          error: 'Netlify Blobs is not properly configured. Please enable Blobs in your Netlify dashboard.',
-          details: 'Go to Site settings → Functions → Blobs and enable Blobs with store ID: study-coach-uploads'
+          error: 'MongoDB URI is not configured. Please set MONGODB_URI environment variable.' 
         }),
       };
     }
@@ -136,24 +129,38 @@ export const handler = async (event) => {
       };
     }
 
-    // Store knowledge metadata in Netlify Blobs
-    const knowledge = {
+    // Store document metadata in MongoDB
+    const documentData = {
       id: fileId,
       filename: file.originalFilename,
       type: fileExt,
       size: file.size,
       extractedText: extractedText,
       pageCount: pageCount,
-      uploadDate: new Date().toISOString(),
     };
 
-    // Save knowledge metadata as JSON in Blobs
     try {
-      await store.set(`knowledge/${fileId}.json`, JSON.stringify(knowledge, null, 2), {
-        contentType: 'application/json',
-      });
+      const savedDocument = await createDocument(documentData);
+      
+      return {
+        statusCode: 200,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          success: true,
+          id: savedDocument.id,
+          filename: file.originalFilename,
+          type: fileExt,
+          size: file.size,
+          pages: pageCount,
+          uploadDate: savedDocument.uploadDate,
+          textLength: extractedText.length,
+        }),
+      };
     } catch (error) {
-      console.error('Failed to store in Netlify Blobs:', error);
+      console.error('Failed to store document in MongoDB:', error);
       return {
         statusCode: 500,
         headers: {
@@ -161,29 +168,11 @@ export const handler = async (event) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ 
-          error: 'Failed to store file in Netlify Blobs. Please check your Blobs configuration.',
+          error: 'Failed to store document in MongoDB.',
           details: error.message
         }),
       };
     }
-
-    return {
-      statusCode: 200,
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        success: true,
-        id: fileId,
-        filename: file.originalFilename,
-        type: fileExt,
-        size: file.size,
-        pages: pageCount,
-        uploadDate: knowledge.uploadDate,
-        textLength: extractedText.length,
-      }),
-    };
 
   } catch (error) {
     console.error('Upload error:', error);
@@ -197,6 +186,9 @@ export const handler = async (event) => {
         error: 'Upload failed: ' + error.message 
       }),
     };
+  } finally {
+    // Close MongoDB connection
+    await closeMongoDB();
   }
 };
 

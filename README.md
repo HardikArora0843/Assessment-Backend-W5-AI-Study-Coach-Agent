@@ -23,6 +23,7 @@ A production-quality AI-powered study coach that helps students learn from their
 
 ### Technical Excellence
 - **Netlify Functions**: Serverless backend for easy deployment
+- **MongoDB Integration**: Persistent document storage with MongoDB Atlas
 - **OpenAI Integration**: Uses the latest OpenAI Responses API
 - **Type-Safe**: Built with modern JavaScript best practices
 - **Optimized Performance**: Fast loading and efficient rendering
@@ -39,6 +40,10 @@ study-coach-agent/
 │   ├── ask.js                # AI question answering
 │   ├── deleteFile.js         # File deletion
 │   ├── listFiles.js          # List all documents
+│   ├── models/               # MongoDB models
+│   │   └── Document.js       # Document model
+│   ├── utils/                # Utility functions
+│   │   └── mongodb.js        # MongoDB connection
 │   └── package.json          # Backend dependencies
 ├── src/
 │   ├── components/           # React Components
@@ -87,6 +92,7 @@ study-coach-agent/
 
 - Node.js 18+ and npm/yarn/pnpm
 - OpenAI API key ([Get one here](https://platform.openai.com/api-keys))
+- MongoDB Atlas account ([Get one here](https://www.mongodb.com/cloud/atlas))
 
 ### Installation
 
@@ -112,13 +118,16 @@ study-coach-agent/
    cp .env.example .env
    ```
    
-   Edit `.env` and add your OpenAI API key:
+   Edit `.env` and add your OpenAI API key and MongoDB URI:
    ```env
    OPENAI_API_KEY=your_actual_api_key_here
+   MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/study-coach?retryWrites=true&w=majority
    MODEL=gpt-4.1-mini
    MAX_CONTEXT_CHARS=12000
    MAX_UPLOAD_SIZE=10485760
    ```
+   
+   See [MONGODB_SETUP.md](MONGODB_SETUP.md) for detailed MongoDB setup instructions.
 
 4. **Run development server**
    ```bash
@@ -184,6 +193,7 @@ netlify deploy --prod
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `OPENAI_API_KEY` | Your OpenAI API key | Required |
+| `MONGODB_URI` | MongoDB Atlas connection string | Required |
 | `MODEL` | OpenAI model to use | `gpt-4.1-mini` |
 | `MAX_CONTEXT_CHARS` | Maximum context characters | `12000` |
 | `MAX_UPLOAD_SIZE` | Maximum file size in bytes | `10485760` (10MB) |
