@@ -3,6 +3,7 @@
   publish = "dist"
 
 [functions]
+  directory = "functions"
   node_bundler = "esbuild"
 
 [context.production.environment]
@@ -23,3 +24,4 @@
   port = 3000
   targetPort = 3000
   autoLaunch = true
+  functions = "functions"
