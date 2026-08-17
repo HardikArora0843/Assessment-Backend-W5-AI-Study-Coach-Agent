@@ -1,7 +1,4 @@
-/**
- * Ask Endpoint
- * Handles AI question answering using OpenAI API with MongoDB storage
- */
+
 
 import OpenAI from 'openai';
 import { getAllDocumentsWithContent } from './models/Document.js';
@@ -144,8 +141,9 @@ Please answer the question based on the study material above.`;
     // Call OpenAI API
     const model = process.env.MODEL || 'gpt-4.1-mini';
     const openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
-    });
+  apiKey: process.env.OPENROUTER_API_KEY,
+  baseURL: process.env.OPENROUTER_BASE_URL,
+});
     
     const completion = await createChatCompletionWithRetry(openai, {
       model: model,
