@@ -17,7 +17,7 @@ export const isValidFileType = (file) => {
 /**
  * Validate file size
  */
-export const isValidFileSize = (file, maxSize = 10485760) => {
+export const isValidFileSize = (file, maxSize = 4194304) => {
   return file.size <= maxSize;
 };
 

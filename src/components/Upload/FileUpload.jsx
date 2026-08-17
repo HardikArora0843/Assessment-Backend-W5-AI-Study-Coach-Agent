@@ -15,7 +15,7 @@ const FileUpload = ({ onUploadSuccess }) => {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState([]);
 
-  const MAX_FILE_SIZE = 10485760; // 10MB
+  const MAX_FILE_SIZE = 4194304; // 4 MB
 
   const processFiles = useCallback(async (files) => {
     const validFiles = files.filter(file => {
