@@ -1,6 +1,18 @@
 # 🤖 AI Study Coach
 
-An AI-powered study assistant that lets you upload your study materials and ask questions about them. The application is designed to make technical learning easier by combining personal study documents with AI-powered explanations.
+An AI-powered study assistant that enables students and self-learners to upload their study materials and ask questions about them. The application combines personal study documents with AI-powered explanations to make revision, concept clarification, and technical interview preparation more effective.
+
+---
+
+## 🎯 Who Is It For?
+
+AI Study Coach is designed for:
+
+- Computer Science and Engineering students
+- Self-learners preparing for technical subjects
+- Students revising lecture notes
+- Job seekers preparing for technical interviews
+- Anyone who wants AI-assisted learning using their own study material
 
 ---
 
@@ -9,35 +21,34 @@ An AI-powered study assistant that lets you upload your study materials and ask 
 ### 📚 Study Material Management
 
 - Upload study documents
-- View available study materials
-- Delete uploaded documents
-- Use personal notes and study resources as the knowledge source
+- View uploaded study materials
+- Delete study documents
+- Use personal notes as the knowledge source
 
 ### 🧠 AI-Powered Study Assistance
 
 - Ask questions about uploaded study material
-- Get clear explanations of technical concepts
+- Receive AI-generated explanations
 - Ask follow-up questions
-- Generate study-focused responses using the available knowledge context
+- Learn technical concepts in simple language
+- Get context-aware responses based on available study resources
 
 ### ⚡ Serverless Backend
 
-The application uses serverless functions for backend operations, including:
+The application uses Netlify Serverless Functions for:
 
 - AI question answering
 - File uploads
 - File listing
 - File deletion
-- Application health checks
+- Health monitoring
 
-### 🌐 Production Deployment
+### 🌐 Production Ready
 
-The application is configured for deployment with Netlify and supports:
-
+- Netlify deployment support
 - Vite production builds
-- Netlify Functions
 - Environment-based configuration
-- Serverless API endpoints
+- Serverless API architecture
 
 ---
 
@@ -62,7 +73,6 @@ The application is configured for deployment with Netlify and supports:
 ## Database / Storage
 
 - MongoDB
-- Study document storage
 
 ## Deployment
 
@@ -76,8 +86,8 @@ The application is configured for deployment with Netlify and supports:
                     ┌───────────────────┐
                     │       User        │
                     │                   │
-                    │  Upload Material  │
-                    │  Ask Questions    │
+                    │ Upload Material   │
+                    │ Ask Questions     │
                     └─────────┬─────────┘
                               │
                               ▼
@@ -88,7 +98,7 @@ The application is configured for deployment with Netlify and supports:
                               │
                               ▼
                     ┌───────────────────┐
-                    │  Netlify Functions│
+                    │ Netlify Functions │
                     │                   │
                     │ ask.js            │
                     │ upload.js         │
@@ -102,14 +112,12 @@ The application is configured for deployment with Netlify and supports:
                  ▼                         ▼
         ┌─────────────────┐       ┌─────────────────┐
         │ Study Materials │       │  OpenRouter AI  │
-        │                 │       │                 │
-        │ MongoDB / Files │       │ AI Processing   │
+        │ MongoDB Storage │       │ Language Model  │
         └─────────────────┘       └────────┬────────┘
                                            │
                                            ▼
                                   ┌─────────────────┐
-                                  │ Generated Study │
-                                  │     Answer      │
+                                  │ AI Study Answer │
                                   └─────────────────┘
 ```
 
@@ -146,13 +154,11 @@ AI-Study-Coach-Agent/
 
 # 🔄 How It Works
 
-The application follows a simple study workflow.
+### Step 1 – Upload Study Material
 
-## 1. Upload Study Material
+Users upload their study documents through the application.
 
-The user uploads a study document through the application.
-
-Examples:
+Example study materials:
 
 ```text
 DBMS Notes
@@ -161,13 +167,13 @@ Operating Systems Notes
 Computer Networks Notes
 ```
 
-The uploaded material becomes available to the application.
+The uploaded material becomes the knowledge source for future questions.
 
 ---
 
-## 2. Ask a Question
+### Step 2 – Ask a Question
 
-The user can ask a question related to the available study material.
+Users ask questions related to the uploaded study material.
 
 Example:
 
@@ -177,11 +183,11 @@ Explain normalization in DBMS in simple terms.
 
 ---
 
-## 3. Backend Processing
+### Step 3 – AI Processing
 
-The frontend sends the question to the backend.
+The frontend sends the request to the backend.
 
-The `ask.js` serverless function handles the request and communicates with the configured AI service.
+The `ask.js` Netlify Function communicates with OpenRouter to generate a response.
 
 ```text
 User Question
@@ -193,10 +199,10 @@ React Frontend
 ask.js
       │
       ▼
-OpenRouter
+OpenRouter AI
       │
       ▼
-AI Response
+Generated Answer
       │
       ▼
 React Frontend
@@ -204,11 +210,11 @@ React Frontend
 
 ---
 
-## 4. Study Response
+### Step 4 – Study Response
 
-The generated response is returned to the frontend and displayed to the user.
+The generated answer is displayed to the user.
 
-The goal is to provide explanations that are useful for learning, revision, and technical interview preparation.
+The goal is to provide useful explanations for learning, revision, and interview preparation.
 
 ---
 
@@ -216,23 +222,23 @@ The goal is to provide explanations that are useful for learning, revision, and 
 
 ## Prerequisites
 
-Make sure the following are installed:
+Install the following:
 
-- Node.js 18+
+- Node.js (18 or later)
 - npm
 - Git
-
-You also need access to the external services used by the application.
+- MongoDB database
+- OpenRouter API Key
 
 ---
 
-## Clone the Repository
+## Clone Repository
 
 ```bash
 git clone https://github.com/HardikArora0843/Assessment-Backend-W5-AI-Study-Coach-Agent.git
 ```
 
-Navigate into the project:
+Move into the project directory.
 
 ```bash
 cd Assessment-Backend-W5-AI-Study-Coach-Agent
@@ -250,48 +256,40 @@ npm install
 
 # 🔐 Environment Variables
 
-Create the required environment configuration for the project.
-
-Example:
+Create a `.env` file and configure the required environment variables.
 
 ```env
 OPENROUTER_API_KEY=your_openrouter_api_key
 MONGODB_URI=your_mongodb_connection_string
 ```
 
-Do not commit real credentials to GitHub.
+Replace the placeholder values with your own credentials.
 
-For production deployments, configure sensitive values through the hosting platform's environment-variable settings.
-
-> Use the exact environment variable names expected by the current source code.
+Do **not** commit sensitive information to GitHub.
 
 ---
 
-# 🚀 Run Locally
+# 🚀 Run the Project
 
-Start the development server:
+Start the development server.
 
 ```bash
 npm run dev
 ```
 
-Vite will display the local development URL in the terminal.
-
-Open that URL in your browser.
+Open the URL shown in the terminal (typically `http://localhost:5173`) in your browser.
 
 ---
 
 # 📦 Production Build
 
-Create a production build with:
+Create a production build.
 
 ```bash
 npm run build
 ```
 
-The command runs the Vite production build and generates the `dist` directory.
-
-To preview the production build locally:
+Preview the production build.
 
 ```bash
 npm run preview
@@ -299,11 +297,11 @@ npm run preview
 
 ---
 
-# ☁️ Netlify Deployment
+# ☁️ Deployment
 
-The project is configured for Netlify deployment.
+The application is configured for Netlify deployment.
 
-A production deployment follows this process:
+Deployment workflow:
 
 ```text
 Git Repository
@@ -315,7 +313,7 @@ Install Dependencies
 npm run build
       │
       ▼
-Vite Production Build
+Vite Build
       │
       ▼
 Bundle Netlify Functions
@@ -327,170 +325,152 @@ Deploy
 Live Application
 ```
 
-The backend functions are packaged automatically from the `functions` directory.
-
 ---
 
-# 🔌 Serverless Functions
+# 💡 Usage Example
 
-## `ask.js`
+### Example Workflow
 
-Handles user study questions and the AI response workflow.
+1. Launch the application.
+2. Upload a study document.
+3. Wait for the upload to complete.
+4. Enter a study-related question.
+5. Click **Ask**.
+6. Read the AI-generated response.
 
----
-
-## `upload.js`
-
-Handles study document uploads.
-
----
-
-## `listFiles.js`
-
-Retrieves the available study documents.
-
----
-
-## `deleteFile.js`
-
-Handles deletion of study documents.
-
----
-
-## `health.js`
-
-Provides an application health/status check.
-
----
-
-# 💡 Example Questions
-
-The Study Coach can be used for questions such as:
+Example question:
 
 ```text
 Explain normalization in DBMS.
 ```
 
-```text
-What is the difference between a process and a thread?
-```
+---
 
-```text
-Explain polymorphism in Java with an example.
-```
+# 📊 v2 Evaluation Results
 
-```text
-What is the difference between TCP and UDP?
-```
-
-```text
-What are the necessary conditions for deadlock?
-```
-
-```text
-Explain the OSI model in simple terms.
-```
+| Test Case | Expected Result | Actual Result | Status |
+|------------|----------------|---------------|--------|
+| Upload study material | File uploads successfully | Passed | ✅ |
+| List uploaded files | Files displayed correctly | Passed | ✅ |
+| Delete uploaded file | Selected file removed | Passed | ✅ |
+| Ask study-related question | AI generates response | Passed | ✅ |
+| Empty question submission | Validation prevents request | Passed | ✅ |
+| Health endpoint | Returns application status | Passed | ✅ |
+| Invalid request handling | Error handled gracefully | Passed | ✅ |
 
 ---
 
-# 🎯 Use Cases
+# 🧩 Design Decisions
 
-The application can be used for:
+### Serverless Backend
 
-- Technical exam preparation
-- Interview preparation
-- Revision of lecture notes
-- Understanding difficult concepts
-- Question answering from personal study material
-- Quick explanations of technical topics
+Netlify Functions were chosen to simplify deployment and remove the need to manage a dedicated backend server.
 
----
+### OpenRouter API
 
-# 🔒 Security
+OpenRouter provides a single API interface to modern language models, making the application flexible and easier to extend.
 
-The application uses environment variables for sensitive configuration.
+### React + Vite
 
-Never commit:
-
-```text
-API keys
-Database passwords
-Authentication secrets
-Private credentials
-```
-
-Sensitive configuration should be stored securely in environment variables.
+React with Vite provides a fast development experience and lightweight frontend performance.
 
 ---
 
-# ⚠️ Known Limitations
+# ⚠️ Current Limitations
 
-The current version focuses on the core study-assistance workflow.
-
-Potential improvements include:
-
-- Flashcard generation
-- Dedicated quiz mode
-- Practice-question generation
-- Study progress tracking
-- Personalized learning recommendations
-- Voice interaction
-- Multi-language support
-- PDF annotation
-- Advanced retrieval
-- Additional knowledge-source integrations
-- Frontend bundle optimization
+- Requires an active internet connection.
+- Depends on OpenRouter API availability.
+- Response quality depends on the uploaded study material.
+- Large documents may increase processing time.
+- Only supported document formats can be uploaded.
+- AI-generated responses may occasionally contain inaccuracies and should be verified against trusted study resources.
 
 ---
 
 # 🔮 Future Improvements
 
-Possible future development directions include:
+### Learning Features
 
-### 📖 Better Learning Tools
-
-- Automatic flashcards
+- Flashcard generation
+- Quiz mode
 - MCQ generation
-- Coding-question generation
-- Spaced-repetition support
+- Coding question generation
+- Spaced repetition
 
-### 🧠 Personalization
+### Personalization
 
 - Learning history
-- Weak-topic detection
+- Weak topic detection
 - Personalized study plans
-- Progress analytics
+- Progress tracking dashboard
 
-### 🔎 Improved Knowledge Retrieval
+### Knowledge Retrieval
 
-- More advanced semantic search
 - Better document chunking
-- Source references in responses
+- Semantic search improvements
+- Source citations
 - Multiple knowledge bases
 
-### 🎙️ Multimodal Learning
+### Multimodal Support
 
-- Voice questions
+- Voice interaction
 - Image-based questions
 - Diagram explanations
 - Additional document formats
 
 ---
 
-# 📊 Project Status
+# 🎯 Use Cases
+
+- Technical exam preparation
+- Interview preparation
+- Revision using personal notes
+- Learning difficult concepts
+- Question answering from uploaded study material
+- Quick concept explanations
+
+---
+
+# 🔒 Security
+
+Sensitive information is stored using environment variables.
+
+Never commit:
 
 ```text
-Application       : AI Study Coach
-Frontend          : React + Vite
-Backend           : Netlify Functions
-AI Integration    : OpenRouter
-Database/Storage  : MongoDB
-Deployment        : Netlify
-Status            : MVP Complete
+API Keys
+Database Credentials
+Authentication Secrets
+Private Tokens
 ```
+
+---
+
+# 📌 Project Status
+
+```text
+Project            : AI Study Coach
+Frontend           : React + Vite
+Backend            : Netlify Functions
+AI Integration     : OpenRouter API
+Database           : MongoDB
+Deployment         : Netlify
+Status             : MVP Complete
+```
+
+---
+
+# 🌐 Live Demo
+
+**Application:** https://ai-study-coach-agent.netlify.app/
+
+**Repository:** https://github.com/HardikArora0843/Assessment-Backend-W5-AI-Study-Coach-Agent
+
+**Demo Video:** *(Add the unlisted YouTube link after recording the assignment demo.)*
 
 ---
 
 # 👨‍💻 Author
 
 **Hardik Arora**
+````
