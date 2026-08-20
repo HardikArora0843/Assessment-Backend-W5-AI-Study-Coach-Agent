@@ -464,9 +464,6 @@ Status             : MVP Complete
 
 **Application:** https://ai-study-coach-agent.netlify.app/
 
-**Repository:** https://github.com/HardikArora0843/Assessment-Backend-W5-AI-Study-Coach-Agent
-
-**Demo Video:** *(Add the unlisted YouTube link after recording the assignment demo.)*
 
 ---
 
