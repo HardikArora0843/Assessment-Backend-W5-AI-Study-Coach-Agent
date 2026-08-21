@@ -464,8 +464,25 @@ Status             : MVP Complete
 
 **Application:** https://ai-study-coach-agent.netlify.app/
 
-
 ---
+
+# 🤝 AI Transparency
+
+This project was developed with the assistance of AI as a development partner during brainstorming, debugging, documentation, and code refinement.
+
+### AI was used for
+
+- Brainstorming feature ideas and user workflows
+- Improving code structure and debugging suggestions
+- Generating and refining project documentation
+- Assisting with README writing and technical explanations
+- Preparing the demo script and presentation content
+
+### My Contribution
+
+I independently designed the application architecture, implemented the frontend and backend functionality, integrated the OpenRouter API, configured Netlify Functions, tested the complete workflow, fixed implementation issues, verified AI-generated suggestions, and made all final technical decisions before including them in the project.
+
+All code, functionality, testing, deployment, and final verification were reviewed and validated by me.
 
 # 👨‍💻 Author
 
